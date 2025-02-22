@@ -16,7 +16,7 @@ export default function Page() {
         const name = response?.data?.name
         if (typeof name === "string") {
           setUsername(name)
-          localStorage.setItem("username", name) // Speichern im LocalStorage
+
         }
       }
       fetchAuth()

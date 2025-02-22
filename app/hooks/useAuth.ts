@@ -8,10 +8,10 @@ const useAuth = () => {
 
     const proveAuth = async () => {
         try {
-            const response = await axios.post("https://5247d8da751e.ngrok.app/google/proveAuth")
+            const response = await axios.post("https://85fa1bc9fb46.ngrok.app/google/proveAuth")
             return response
         } catch (err) {
-            window.location.href = "https://5247d8da751e.ngrok.app/signin"
+            window.location.href = "https://85fa1bc9fb46.ngrok.app/signin"
             console.error("auth hook catch err: ", err)
         }
     }
