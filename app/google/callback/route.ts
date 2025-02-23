@@ -29,13 +29,13 @@ export async function GET(request: NextRequest) {
             headers: { "Content-Type": "application/x-www-form-urlencoded" },
         });
 
-        const accessToken = tokenResponse.data.access_token;
+        const accesstoken = tokenResponse.data.access_token;
         const refreshToken = tokenResponse.data.refresh_token || null;
 
         const userInfoUrl = "https://www.googleapis.com/oauth2/v3/userinfo";
         const userInfoResponse = await axios.get(userInfoUrl, {
             headers: {
-                Authorization: `Bearer ${accessToken}`,
+                Authorization: `Bearer ${accesstoken}`,
             },
         });
         const { sub, name, given_name, family_name, email } = userInfoResponse.data;
@@ -45,11 +45,11 @@ export async function GET(request: NextRequest) {
             const userAccessToken = existingUser[0].access_token;
             await db
                 .update(users)
-                .set({access_token: accessToken})
+                .set({access_token: accesstoken})
                 .where(eq(users.access_token, userAccessToken));
         } else {
             const x = await db.insert(users).values({
-                access_token: accessToken,
+                access_token: accesstoken,
                 refresh_token: refreshToken,
                 sub,
                 name,
@@ -66,7 +66,7 @@ export async function GET(request: NextRequest) {
             return NextResponse.json({ message: "env Problem in callback route" }, { status: 400 });
         }
 
-        const jwtToken = jwt.sign({ accessToken }, SECRET, { expiresIn: "2h" });
+        const jwtToken = jwt.sign({ accesstoken }, SECRET, { expiresIn: "2h" });
 
         const response = NextResponse.redirect("https://85fa1bc9fb46.ngrok.app/home");
 

@@ -23,15 +23,14 @@ export async function POST(request: NextRequest) {
         try {
             const stringToken = authToken.value;
             const decoded = jwt.verify(stringToken, SECRET) as jwt.JwtPayload;
-            if (decoded && typeof decoded === "object" && "accessToken" in decoded) {
-                const accessToken = decoded.accessToken;
-                const result = await db.select().from(users).where(eq(users.access_token, accessToken));
+            if (decoded && typeof decoded === "object" && "accesstoken" in decoded) {
+                const accessToken = decoded.accesstoken;
 
+                const result = await db.select().from(users).where(eq(users.access_token, accessToken))
                 if (result.length === 0) {
                     return NextResponse.json({ message: "accessToken not found in proveAuth", status: 200 })
                 } else {
                     try {
-                        console.log("")
                         const response = await axios.get("https://www.googleapis.com/oauth2/v3/tokeninfo", {
                             params: { access_token: accessToken },
                         });
@@ -40,17 +39,18 @@ export async function POST(request: NextRequest) {
                         const minutes = Math.floor(expiresInSeconds / 60);
                         const seconds = expiresInSeconds % 60;
         
-                        const result = await db.select().from(users).where(eq(users.access_token, accessToken));
+                        const result = await db.select().from(users)
                         const userInfo = result[0]
                         const { name } = userInfo
         
-                        
                         console.log(`Token läuft ab in: ${minutes} Minuten und ${seconds} Sekunden`);
 
                         return NextResponse.json({ message: "success", name: name, status: 200 })
                     } catch (err) {
-                        const result = await db.select().from(users).where(eq(users.access_token, accessToken));
+                        console.log("1")
+                        const result = await db.select().from(users).where(eq(users.access_token, accessToken))
                         const refreshToken = result[0].refresh_token
+                        console.log("2")
 
                         const tokenUrl = 'https://oauth2.googleapis.com/token';
                         const tokenResponse = await fetch(tokenUrl, {
@@ -63,26 +63,36 @@ export async function POST(request: NextRequest) {
                                 grant_type: "refresh_token",
                             }).toString(),
                         });
-
+                        console.log("3")
                         const data = await tokenResponse.json()
-                        const newAccessToken = data.access_token
-
+                        const accesstoken = data.access_token
                         try {
-                            await db
+                            const x = await db
                                 .update(users)
-                                .set({access_token: newAccessToken})
-                                .where(eq(users.access_token, accessToken));
+                                .set({access_token: accesstoken})
+                                .where(eq(users.access_token, accesstoken))
+
                             
+                            console.log(x)
+                            console.log("new token -------->", accesstoken)
+                            console.log("4")
                             const SECRET = process.env.SECRET
                             if (!SECRET) {
                                 return NextResponse.json({ message: "env Problem in callback route" }, { status: 400 });
                             }
-                            const result = await db.select().from(users).where(eq(users.access_token, accessToken));
+                            console.log("5")
+                            const result = await db.select().from(users).where(eq(users.access_token, accesstoken))
+                            console.log("6")
                             const userInfo = result[0]
+                            console.log("7")
                             const { name } = userInfo
+                            console.log("8")
 
-                            const jwtToken = jwt.sign({ newAccessToken }, SECRET, { expiresIn: "2h" });
+                            console.log("new access token", accesstoken)
+                            const jwtToken = jwt.sign({ accesstoken }, SECRET, { expiresIn: "24h" });
+                            console.log("9")
                             const response = NextResponse.json({ message: name }, { status: 200 });
+                            console.log("10")
                             response.cookies.set("auth_token", jwtToken, {
                                 httpOnly: true,
                                 secure: true,
@@ -95,7 +105,9 @@ export async function POST(request: NextRequest) {
                         }
                     }
                 }
-            } 
+            } else {
+                console.log("JWT IF ERROR")
+            }
         } catch (err) {
             console.log("jwt missmatch in proveAuth")
             return NextResponse.json({ message: "jwt missmatch in proveAuth", status: 200 })

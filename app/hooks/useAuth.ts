@@ -9,6 +9,7 @@ const useAuth = () => {
     const proveAuth = async () => {
         try {
             const response = await axios.post("https://85fa1bc9fb46.ngrok.app/google/proveAuth")
+            console.log("custom hook data ---->", response)
             return response
         } catch (err) {
             window.location.href = "https://85fa1bc9fb46.ngrok.app/signin"
